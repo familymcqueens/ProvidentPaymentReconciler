@@ -2,9 +2,6 @@
 ## Script to read AutoManager and QuickBooks Bank Register Files
 ##
 
-my @AM;  # Auto Manager Array
-my @QB;  # Quickbooks Array
- 
 my $YELLOW = "yellow";
 my $BLUE   = "blue";
 my $GREEN  = "green";
@@ -413,7 +410,7 @@ print "\nProcessing Quickbooks deposits...\n\n";
 					HtmlTableTopSection($htmlFileHandle,$RED);
 					print   $htmlFileHandle "<br><tr><th>Error Description</th><th>Date</th><th>Name</th><th>Payment Type</th><th>Amount</th>\n";
 					print   $htmlFileHandle "<tr>\n";
-					print   $htmlFileHandle "<td align=\"left\">","QBOOKS DEPOSIT DUPLICATE OR MISSING IN AUTOMANAGER</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">","QBOOKS DEPOSIT DUPLICATE OR MISSING IN AUTOMANAGER, NSF??</td>\n";
 					print   $htmlFileHandle "<td align=\"left\">",$qb_date,"</td>\n";
 					print   $htmlFileHandle "<td align=\"center\">",uc($qb_name),"</td>\n";
 					print   $htmlFileHandle "<td align=\"center\">",uc($qb_payment_type),"</td>\n";
@@ -432,7 +429,7 @@ print "\nProcessing Quickbooks deposits...\n\n";
 						 if ((abs($interest) eq $qb_amount) || (abs($principal) eq $qb_amount))
 						 {
 							print $htmlFileHandle "<tr>\n";
-							print $htmlFileHandle "<td align=\"left\">","POSSIBLE MATCH</td>\n";
+							print $htmlFileHandle "<td align=\"left\">","AUTOMANAGER POSSIBLE MATCH</td>\n";
 							print $htmlFileHandle "<td align=\"left\">",$date,"</td>\n";
 							print $htmlFileHandle "<td align=\"center\">",uc($name),"</td>\n";
 							print $htmlFileHandle "<td align=\"left\">","Principal: ",$principal," Interest: ",$interest,"</td>\n";		
