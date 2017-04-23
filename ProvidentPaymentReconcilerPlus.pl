@@ -184,8 +184,6 @@ my $deposit_date;
 	$QBA[$qbIndex][QB_PAYMENT_TYPE_INDEX] = $income_type;
 	$QBA[$qbIndex][QB_AM_EXACT_MATCH_INDEX] = -1;
 	
-	#JRM
-	#print "QBA Index:",$qbIndex,":",$deposit_date,":",$ucname,":",$amountabs,":",$memo,":",$income_type,"\n";		
 	$qbIndex++;	
  }
   
@@ -256,7 +254,7 @@ for my $i (0 .. ($#QBA))
 	
 	$num_total_entries++;
 	
-	#print {STDERR} ".";
+	print {STDERR} ".";
 	@tokens = split(/ /, $qb_name);
 	$loop = 0;
 	foreach my $token (@tokens) 
@@ -337,10 +335,6 @@ for my $i (0 .. ($#QBA))
 	    elsif (($am_name eq $qb_name) && ($am_amount eq $qb_amount))
 		{
 			$QBA[$i][QB_AM_NAME_AMOUNT_MATCH_INDEX][$nameAmountMatchIndex++] = $j;
-			#print "\nFound ",$nameAmountMatchIndex," name and amount matches!\n";
-			#print "QBIndex:",$i,":",$qb_name,":",$qb_amount,":",$qb_memo,":",$qb_payment_type,"\n";	
-			#print "AMIndex:",$j,":",$am_name,":",$am_amount,":",$am_notes,":",$am_payment_type,"\n";
-			#print "[Size: ", scalar @{ $QBA[$i][QB_AM_NAME_AMOUNT_MATCH_INDEX] },"]\n";				
 		}
 		
 		## Look for match with "short" last name and amount only
@@ -350,29 +344,16 @@ for my $i (0 .. ($#QBA))
 			if (($am_first_shortname eq $qb_first_shortname) && ($am_payment_type) eq ($qb_payment_type))
 			{
 				$QBA[$i][QB_AM_SHORTNAME_AMOUNT_MATCH_INDEX][$shortNameAmountMatchIndex++] = $j;
-				#print "\nFound ",$shortNameAmountMatchIndex," shortname and payment type matches!\n";
-				#print "QBIndex:",$i,":",$qb_name,":",$qb_amount,":",$qb_memo,":",$qb_payment_type,"\n";	
-				#print "AMIndex:",$j,":",$am_name,":",$am_amount,":",$am_notes,":",$am_payment_type,"\n";
-				#print "[Size: ", scalar @{ $QBA[$i][QB_AM_SHORTNAME_AMOUNT_MATCH_INDEX] },"]\n";				
 			}
 			elsif ( ($qb_memo eq "DEPOSIT") && (($am_payment_type) eq ($qb_payment_type)) )
 			{
 				$QBA[$i][QB_AM_WEAKNAME_MATCH_INDEX][$weakNameAmountMatchIndex++] = $j;
-				#print "\nFound ",$weakNameAmountMatchIndex," weak matches!\n";
-				#print "QBIndex:",$i,":",$qb_name,":",$qb_amount,":",$qb_memo,":",$qb_payment_type,"\n";	
-				#print "AMIndex:",$j,":",$am_name,":",$am_amount,":",$am_notes,":",$am_payment_type,"\n";
-				#print "[Size: ", scalar @{ $QBA[$i][QB_AM_WEAKNAME_MATCH_INDEX] },"]\n";				
 			}
 		}
 		elsif (($am_name eq $qb_name) && ($am_payment_type) eq ($qb_payment_type))
 		{
 			$QBA[$i][QB_AM_NAME_TYPE_MATCH_INDEX][$namePaymentTypeMatchIndex++] = $j;
-			#print "\nFound ",$namePaymentTypeMatchIndex," name and payment type matches!\n";
-			#print "QBIndex:",$i,":",$qb_name,":",$qb_amount,":",$qb_memo,":",$qb_payment_type,"\n";	
-			#print "AMIndex:",$j,":",$am_name,":",$am_amount,":",$am_notes,":",$am_payment_type,"\n";
-			#print "[Size: ", scalar @{ $QBA[$i][QB_AM_NAME_TYPE_MATCH_INDEX] },"]\n";
-		}
-					
+		}					
     }
  } 
 
@@ -389,7 +370,6 @@ for my $m (1 .. ($#QBA))
 	my $qb_memo   = $QBA[$m][QB_MEMO_INDEX];
 	my $qb_payment_type = ConvertPaymentTypeToString($QBA[$m][QB_PAYMENT_TYPE_INDEX]);
 
-	#if 1
 	if (($QBA[$m][QB_MEMO_INDEX]) ne "DEPOSIT" && ($QBA[$m][QB_MEMO_INDEX] ne ""))
 	{
 		$num_missing_payment_unknown_reason++;				
@@ -398,7 +378,7 @@ for my $m (1 .. ($#QBA))
 		push (@unknown_missing_log, $unknown_missing_log);
 		next;
 	}
-    #endif	
+    
 	if ( ($QBA[$m][QB_AM_EXACT_MATCH_INDEX] < 0) )
 	{
 		print "-------------------------------------------------------\n";
@@ -438,7 +418,6 @@ for my $m (1 .. ($#QBA))
 				
 				if ( $AMA[$m][AM_QB_EXACT_MATCH_INDEX] < 0 )
 				{
-					#print "------> [",$k+1,"] AMIndex:",$index," Name: ",$am_name," Amt: ",$am_amount," Notes: ",$am_notes," Type: ",$am_payment_type,"\n";	
 					print "\n   Payment Type Mismatch\n";
 					print "     --> Date: ", $am_date," Name: ",$am_name," Amount: ",$am_amount,"\n";
 					print "     --> Quickbooks Entry: [", $qb_payment_type, "]  Memo: [",$qb_memo,"]\n";
@@ -474,8 +453,6 @@ for my $m (1 .. ($#QBA))
 				
 				if ( $AMA[$m][AM_QB_EXACT_MATCH_INDEX] < 0 )
 				{
-					#print "------> [",$k+1,"] AMIndex:",$index," Name: ",$am_name," Amt: ",$am_amount," Notes: ",$am_notes," Type: ",$am_payment_type,"\n";
-					
 					print   $htmlFileHandle "<tr>\n";
 					print   $htmlFileHandle "<td align=\"left\">",$am_notes,"</td>\n";
 					print   $htmlFileHandle "<td align=\"center\">",$am_date,"</td>\n";
@@ -510,8 +487,6 @@ for my $m (1 .. ($#QBA))
 				
 				if ( $AMA[$m][AM_QB_EXACT_MATCH_INDEX] < 0 )
 				{
-					#print "------> [",$k+1,"] AMIndex:",$index," Name: ",$am_name," Amt: ",$am_amount," Notes: ",$am_notes," Type: ",$am_payment_type,"\n";
-					
 					print   $htmlFileHandle "<tr>\n";
 					print   $htmlFileHandle "<td align=\"left\">",$am_notes,"</td>\n";
 					print   $htmlFileHandle "<td align=\"center\">",$am_date,"</td>\n";
@@ -548,8 +523,6 @@ for my $m (1 .. ($#QBA))
 				
 				if ( $AMA[$m][AM_QB_EXACT_MATCH_INDEX] < 0 )
 				{
-					#print "------> [",$k+1,"] AMIndex:",$index," Name: ",$am_name," Amt: ",$am_amount," Notes: ",$am_notes," Type: ",$am_payment_type,"\n";
-
 					print   $htmlFileHandle "<tr>\n";
 					print   $htmlFileHandle "<td align=\"left\">",$am_notes,"</td>\n";
 					print   $htmlFileHandle "<td align=\"center\">",$am_date,"</td>\n";
@@ -579,15 +552,11 @@ for my $m (1 .. ($#QBA))
 		my $qb_amount = $QBA[$m][QB_AMOUNT_INDEX];
 		my $qb_memo   = $QBA[$m][QB_MEMO_INDEX];
 		my $qb_payment_type = ConvertPaymentTypeToString($QBA[$m][QB_PAYMENT_TYPE_INDEX]);
-		#print "EXACT MATCH: QBIndex:",$i,":",$qb_name,":",$qb_amount,":",$qb_memo,":",$qb_payment_type,"\n";		
 	}
 }
 
-#print "2-Num Exact Matches: ",$num_exact_matches,"\n"; 
- 
 print  PR_HTML_OUTPUT_FILE "</body>\n";
 print  PR_HTML_OUTPUT_FILE "</html>\n";
- 
 
 {
 	print $htmlFileHandle "<br><br>\n"
@@ -609,9 +578,7 @@ print  PR_HTML_OUTPUT_FILE "</html>\n";
 	}	
 	HtmlTableTailSection($htmlFileHandle);
 	
-	
 	print $htmlFileHandle "<br><br>\n"
-	
 	
 	HtmlTableTopSection($htmlFileHandle,$GREEN);	
 	print $htmlFileHandle "<tr><th colspan=5>The following entries are EXACT matches in QuickBooks and AutoManager</th>\n";
@@ -634,6 +601,10 @@ print  PR_HTML_OUTPUT_FILE "</html>\n";
 }
 
 close(PR_HTML_OUTPUT_FILE);
+## end of main script logic
+
+
+
 
 sub ConvertPaymentTypeToString
 {
