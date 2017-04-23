@@ -60,8 +60,8 @@ while (<AM_INPUT_FILE>) {
  	if ($payment_type eq "PAYMENT")
 	{
 		$AMA[$amIndex][AM_DATE_INDEX] = $date;
-		$AMA[$amIndex][AM_NAME_INDEX] = $name;
-		$AMA[$amIndex][AM_NOTES_INDEX] = $notes;		
+		$AMA[$amIndex][AM_NAME_INDEX] = uc($name);
+		$AMA[$amIndex][AM_NOTES_INDEX] = uc($notes);		
 		$AMA[$amIndex][AM_PAYMENT_TYPE_INDEX] = INTEREST_INCOME_TYPE;
 		$AMA[$amIndex][AM_PAYMENT_AMOUNT_INDEX] = sprintf('%.2f',abs($interest));
 		$AMA[$amIndex][AM_QB_EXACT_MATCH_INDEX] = -1;
@@ -69,8 +69,8 @@ while (<AM_INPUT_FILE>) {
 		$amIndex++;
 		
 		$AMA[$amIndex][AM_DATE_INDEX] = $date;
-		$AMA[$amIndex][AM_NAME_INDEX] = $name;
-		$AMA[$amIndex][AM_NOTES_INDEX] = $notes;		
+		$AMA[$amIndex][AM_NAME_INDEX] = uc($name);
+		$AMA[$amIndex][AM_NOTES_INDEX] = uc($notes);		
 		$AMA[$amIndex][AM_PAYMENT_TYPE_INDEX] = PRINCIPAL_INCOME_TYPE;
 		$AMA[$amIndex][AM_PAYMENT_AMOUNT_INDEX] = sprintf('%.2f',abs($principal));	
 		$AMA[$amIndex][AM_QB_EXACT_MATCH_INDEX] = -1;		
@@ -78,8 +78,8 @@ while (<AM_INPUT_FILE>) {
 	elsif ($payment_type eq "LATE FEE")
 	{
 		$AMA[$amIndex][AM_DATE_INDEX] = $date;
-		$AMA[$amIndex][AM_NAME_INDEX] = $name;
-		$AMA[$amIndex][AM_NOTES_INDEX] = $notes;		
+		$AMA[$amIndex][AM_NAME_INDEX] = uc($name);
+		$AMA[$amIndex][AM_NOTES_INDEX] = uc($notes);		
 		$AMA[$amIndex][AM_PAYMENT_TYPE_INDEX] = LATE_FEE_INCOME_TYPE;
 		$AMA[$amIndex][AM_PAYMENT_AMOUNT_INDEX] = sprintf('%.2f',abs($total));
 		$AMA[$amIndex][AM_QB_EXACT_MATCH_INDEX] = -1;
@@ -146,14 +146,10 @@ my $deposit_date;
 	$memo=~ s/"//;
 	$payment_type=~ s/"//;	
 	$payment_type=~ s/"//;
-	$memo = uc($memo);
 	$name = sprintf("%s %s",$uclastname,$ucfirstname);
  		
 	## Use absolute value
 	$amountabs = sprintf('%.2f',abs($amount));
-	
-	## Set name to uppercase for text comparision
-	$ucname = uc($name);
 	
 	my $income_type;
 	
@@ -182,9 +178,9 @@ my $deposit_date;
 	}
 		
 	$QBA[$qbIndex][QB_DATE_INDEX] = $deposit_date;
-	$QBA[$qbIndex][QB_NAME_INDEX] = $ucname;
+	$QBA[$qbIndex][QB_NAME_INDEX] = uc($name);
 	$QBA[$qbIndex][QB_AMOUNT_INDEX] = $amountabs;
-	$QBA[$qbIndex][QB_MEMO_INDEX] = $memo;
+	$QBA[$qbIndex][QB_MEMO_INDEX] = uc($memo);
 	$QBA[$qbIndex][QB_PAYMENT_TYPE_INDEX] = $income_type;
 	$QBA[$qbIndex][QB_AM_EXACT_MATCH_INDEX] = -1;
 	
@@ -256,7 +252,7 @@ for my $i (0 .. ($#QBA))
 	my $qb_name         = $QBA[$i][QB_NAME_INDEX];
 	my $qb_amount       = $QBA[$i][QB_AMOUNT_INDEX];
 	my $qb_memo         = $QBA[$i][QB_MEMO_INDEX];
-	my $qb_payment_type = $QBA[$i][QB_PAYMENT_TYPE_INDEX];
+	my $qb_payment_type = ConvertPaymentTypeToString($QBA[$i][QB_PAYMENT_TYPE_INDEX]);
 	
 	$num_total_entries++;
 	
@@ -287,9 +283,9 @@ for my $i (0 .. ($#QBA))
 	for my $j (0 .. ($#AMA - 1)) 
 	{
 		my $am_date         = $AMA[$j][AM_DATE_INDEX];
-		my $am_name         = uc($AMA[$j][AM_NAME_INDEX]);
-		my $am_notes        = uc($AMA[$j][AM_NOTES_INDEX]);
-		my $am_payment_type = $AMA[$j][AM_PAYMENT_TYPE_INDEX];
+		my $am_name         = $AMA[$j][AM_NAME_INDEX];
+		my $am_notes        = $AMA[$j][AM_NOTES_INDEX];
+		my $am_payment_type = ConvertPaymentTypeToString($AMA[$j][AM_PAYMENT_TYPE_INDEX]);
 		my $am_amount       = $AMA[$j][AM_PAYMENT_AMOUNT_INDEX];
 		  
 	    @tokens = split(/ /, $am_name);
@@ -313,7 +309,6 @@ for my $i (0 .. ($#QBA))
 		$qb_first_shortname = sprintf("%.1s", $qb_first_name);
 		$qb_last_shortname  = sprintf("%.1s", $qb_last_name);
 		
-		
 		# Look for EXACT match with NAME, PAYMENT TYPE, and AMOUNT
 	    if (($am_name eq $qb_name) && ($am_payment_type eq  $qb_payment_type) && 
 		    ($am_amount eq $qb_amount) && (($qb_memo eq "DEPOSIT") || ($qb_memo eq $am_notes)))
@@ -321,9 +316,9 @@ for my $i (0 .. ($#QBA))
 			$num_exact_matches++;			
 			$QBA[$i][QB_AM_EXACT_MATCH_INDEX] = $j;	
 			$ABA[$i][QB_AM_EXACT_MATCH_INDEX] = $j;
-			#print "EXACT MATCH: AmIndex: ",$j," QBIndex:",$i,":",$qb_name,":",$qb_amount,":",$qb_memo,":",ConvertPaymentTypeToString($qb_payment_type),"\n";
+			#print "EXACT MATCH: AmIndex: ",$j," QBIndex:",$i,":",$qb_name,":",$qb_amount,":",$qb_memo,":",$qb_payment_type,"\n";
 			
-			$exact_match_log = sprintf("%s:%s:%s:%s:%s",uc($qb_name), ConvertPaymentTypeToString($qb_payment_type), $qb_amount, $qb_date, $am_date);
+			$exact_match_log = sprintf("%s:%s:%s:%s:%s",$qb_name, $qb_payment_type, $qb_amount, $qb_date, $am_date);
 			push (@exact_match_log, $exact_match_log);
 			
 			$found_exact_match = 1;
@@ -360,7 +355,7 @@ for my $i (0 .. ($#QBA))
 				#print "AMIndex:",$j,":",$am_name,":",$am_amount,":",$am_notes,":",$am_payment_type,"\n";
 				#print "[Size: ", scalar @{ $QBA[$i][QB_AM_SHORTNAME_AMOUNT_MATCH_INDEX] },"]\n";				
 			}
-			elsif ( (uc($qb_memo) eq "DEPOSIT") && ($am_payment_type) eq ($qb_payment_type))
+			elsif ( ($qb_memo eq "DEPOSIT") && (($am_payment_type) eq ($qb_payment_type)) )
 			{
 				$QBA[$i][QB_AM_WEAKNAME_MATCH_INDEX][$weakNameAmountMatchIndex++] = $j;
 				#print "\nFound ",$weakNameAmountMatchIndex," weak matches!\n";
@@ -377,7 +372,7 @@ for my $i (0 .. ($#QBA))
 			#print "AMIndex:",$j,":",$am_name,":",$am_amount,":",$am_notes,":",$am_payment_type,"\n";
 			#print "[Size: ", scalar @{ $QBA[$i][QB_AM_NAME_TYPE_MATCH_INDEX] },"]\n";
 		}
-			
+					
     }
  } 
 
@@ -386,33 +381,43 @@ $num_exact_matches=0;
 
 print "--------------------------------------------------\n";
  
-for my $m (0 .. ($#QBA))  
+for my $m (1 .. ($#QBA))  
 {
-	if ( $QBA[$m][QB_AM_EXACT_MATCH_INDEX] < 0 )
+	my $qb_date   = $QBA[$m][QB_DATE_INDEX];
+	my $qb_name   = $QBA[$m][QB_NAME_INDEX];
+	my $qb_amount = $QBA[$m][QB_AMOUNT_INDEX];
+	my $qb_memo   = $QBA[$m][QB_MEMO_INDEX];
+	my $qb_payment_type = ConvertPaymentTypeToString($QBA[$m][QB_PAYMENT_TYPE_INDEX]);
+
+	#if 1
+	if (($QBA[$m][QB_MEMO_INDEX]) ne "DEPOSIT" && ($QBA[$m][QB_MEMO_INDEX] ne ""))
 	{
-		my $qb_date   = $QBA[$m][QB_DATE_INDEX];
-		my $qb_name   = $QBA[$m][QB_NAME_INDEX];
-		my $qb_amount = $QBA[$m][QB_AMOUNT_INDEX];
-		my $qb_memo   = $QBA[$m][QB_MEMO_INDEX];
-		my $qb_payment_type = $QBA[$m][QB_PAYMENT_TYPE_INDEX];
-		
+		$num_missing_payment_unknown_reason++;				
+		$unknown_missing_log = sprintf("%s:%s:%s:%s:%s",
+			$qb_memo,$qb_date,$qb_name,$qb_payment_type,$qb_amount);
+		push (@unknown_missing_log, $unknown_missing_log);
+		next;
+	}
+    #endif	
+	if ( ($QBA[$m][QB_AM_EXACT_MATCH_INDEX] < 0) )
+	{
 		print "-------------------------------------------------------\n";
 		print "\n-> MISSING AutoManager Match <-\n";
 		print " Name: ",$qb_name,"\n";
 		print " Date: ",$qb_date,"\n";
 		print " Amount: ",$qb_amount,"\n";
 		print " Memo:",$qb_memo,"\n";
-		print " Payment Type: ",ConvertPaymentTypeToString($qb_payment_type),"\n\n";
+		print " Payment Type: ",$qb_payment_type,"\n\n";
 		
 		HtmlTableTopSection($htmlFileHandle,$RED);
 		print   $htmlFileHandle "<br><br><tr>\n";
 		print   $htmlFileHandle "<tr><th>Quickbooks Description</th><th>Date</th><th>Name</th><th>Payment</th><th>Payment Type</th>\n";
 		print   $htmlFileHandle "<tr>\n";
-		print   $htmlFileHandle "<td align=\"left\">",uc($qb_memo),"</td>\n";
+		print   $htmlFileHandle "<td align=\"left\">",$qb_memo,"</td>\n";
 		print   $htmlFileHandle "<td align=\"center\">",$qb_date,"</td>\n";
-		print   $htmlFileHandle "<td align=\"left\">",uc($qb_name),"</td>\n";
+		print   $htmlFileHandle "<td align=\"left\">",$qb_name,"</td>\n";
 		print   $htmlFileHandle "<td align=\"center\">",$qb_amount,"</td>\n";
-		print   $htmlFileHandle "<td align=\"center\">",ConvertPaymentTypeToString($qb_payment_type),"</td>\n";
+		print   $htmlFileHandle "<td align=\"center\">",$qb_payment_type,"</td>\n";
 		print   $htmlFileHandle "</tr>\n";
 		print   $htmlFileHandle "<tr><th>AutoManager Description</th><th>Date</th><th>Name</th><th>Payment</th><th>Payment Type</th><th>Match Type</th>\n";			
 		
@@ -428,23 +433,23 @@ for my $m (0 .. ($#QBA))
 				my $am_date         = $AMA[$index][AM_DATE_INDEX];
 				my $am_name         = $AMA[$index][AM_NAME_INDEX];
 				my $am_notes        = $AMA[$index][AM_NOTES_INDEX];
-				my $am_payment_type = $AMA[$index][AM_PAYMENT_TYPE_INDEX];
+				my $am_payment_type = ConvertPaymentTypeToString($AMA[$index][AM_PAYMENT_TYPE_INDEX]);
 				my $am_amount       = $AMA[$index][AM_PAYMENT_AMOUNT_INDEX];
 				
 				if ( $AMA[$m][AM_QB_EXACT_MATCH_INDEX] < 0 )
 				{
-					#print "------> [",$k+1,"] AMIndex:",$index," Name: ",$am_name," Amt: ",$am_amount," Notes: ",$am_notes," Type: ",ConvertPaymentTypeToString($am_payment_type),"\n";	
+					#print "------> [",$k+1,"] AMIndex:",$index," Name: ",$am_name," Amt: ",$am_amount," Notes: ",$am_notes," Type: ",$am_payment_type,"\n";	
 					print "\n   Payment Type Mismatch\n";
 					print "     --> Date: ", $am_date," Name: ",$am_name," Amount: ",$am_amount,"\n";
-					print "     --> Quickbooks Entry: [", ConvertPaymentTypeToString($qb_payment_type), "]  Memo: [",uc($qb_memo),"]\n";
-					print "     --> AutoManager Entry: [", ConvertPaymentTypeToString($am_payment_type), "]\n\n";
+					print "     --> Quickbooks Entry: [", $qb_payment_type, "]  Memo: [",$qb_memo,"]\n";
+					print "     --> AutoManager Entry: [", $am_payment_type, "]\n\n";
 									
 					print   $htmlFileHandle "<tr>\n";
-					print   $htmlFileHandle "<td align=\"left\">",uc($am_notes),"</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">",$am_notes,"</td>\n";
 					print   $htmlFileHandle "<td align=\"center\">",$am_date,"</td>\n";
-					print   $htmlFileHandle "<td align=\"left\">",uc($am_name),"</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">",$am_name,"</td>\n";
 					print   $htmlFileHandle "<td align=\"center\">",$am_amount,"</td>\n";
-					print   $htmlFileHandle "<td align=\"center\">",ConvertPaymentTypeToString($am_payment_type),"</td>\n";
+					print   $htmlFileHandle "<td align=\"center\">",$am_payment_type,"</td>\n";
 					print   $htmlFileHandle "<td align=\"center\">","Payment Type Mismatch","</td>\n";
 					print   $htmlFileHandle "</tr>\n";	
 				}
@@ -464,7 +469,7 @@ for my $m (0 .. ($#QBA))
 				my $am_date         = $AMA[$index][AM_DATE_INDEX];
 				my $am_name         = $AMA[$index][AM_NAME_INDEX];
 				my $am_notes        = $AMA[$index][AM_NOTES_INDEX];
-				my $am_payment_type = $AMA[$index][AM_PAYMENT_TYPE_INDEX];
+				my $am_payment_type = ConvertPaymentTypeToString($AMA[$index][AM_PAYMENT_TYPE_INDEX]);
 				my $am_amount       = $AMA[$index][AM_PAYMENT_AMOUNT_INDEX];
 				
 				if ( $AMA[$m][AM_QB_EXACT_MATCH_INDEX] < 0 )
@@ -472,16 +477,16 @@ for my $m (0 .. ($#QBA))
 					#print "------> [",$k+1,"] AMIndex:",$index," Name: ",$am_name," Amt: ",$am_amount," Notes: ",$am_notes," Type: ",$am_payment_type,"\n";
 					
 					print   $htmlFileHandle "<tr>\n";
-					print   $htmlFileHandle "<td align=\"left\">",uc($am_notes),"</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">",$am_notes,"</td>\n";
 					print   $htmlFileHandle "<td align=\"center\">",$am_date,"</td>\n";
-					print   $htmlFileHandle "<td align=\"left\">",uc($am_name),"</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">",$am_name,"</td>\n";
 					print   $htmlFileHandle "<td align=\"center\">",$am_amount,"</td>\n";
-					print   $htmlFileHandle "<td align=\"center\">",ConvertPaymentTypeToString($am_payment_type),"</td>\n";
+					print   $htmlFileHandle "<td align=\"center\">",$am_payment_type,"</td>\n";
 					print   $htmlFileHandle "<td align=\"center\">","Shortname Amount Type Match","</td>\n";
 					print   $htmlFileHandle "</tr>\n";	
 			
 					print "\nShortname Amount Type Match\n";
-					print "   --> Amount: [",$am_name,"] Payment Type: [",ConvertPaymentTypeToString($am_payment_type),"]\n";
+					print "   --> Amount: [",$am_name,"] Payment Type: [",$am_payment_type,"]\n";
 					print "   --> Quickbooks Entry:  [",$qb_date," ",$qb_name,"]\n";
 					print "   --> AutoManager Entry: [",$am_date," ",$am_name,"]\n";			
 				}
@@ -500,7 +505,7 @@ for my $m (0 .. ($#QBA))
 				my $am_date         = $AMA[$index][AM_DATE_INDEX];
 				my $am_name         = $AMA[$index][AM_NAME_INDEX];
 				my $am_notes        = $AMA[$index][AM_NOTES_INDEX];
-				my $am_payment_type = $AMA[$index][AM_PAYMENT_TYPE_INDEX];
+				my $am_payment_type = ConvertPaymentTypeToString($AMA[$index][AM_PAYMENT_TYPE_INDEX]);
 				my $am_amount       = $AMA[$index][AM_PAYMENT_AMOUNT_INDEX];
 				
 				if ( $AMA[$m][AM_QB_EXACT_MATCH_INDEX] < 0 )
@@ -508,19 +513,19 @@ for my $m (0 .. ($#QBA))
 					#print "------> [",$k+1,"] AMIndex:",$index," Name: ",$am_name," Amt: ",$am_amount," Notes: ",$am_notes," Type: ",$am_payment_type,"\n";
 					
 					print   $htmlFileHandle "<tr>\n";
-					print   $htmlFileHandle "<td align=\"left\">",uc($am_notes),"</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">",$am_notes,"</td>\n";
 					print   $htmlFileHandle "<td align=\"center\">",$am_date,"</td>\n";
-					print   $htmlFileHandle "<td align=\"left\">",uc($am_name),"</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">",$am_name,"</td>\n";
 					print   $htmlFileHandle "<td align=\"center\">",$am_amount,"</td>\n";
-					print   $htmlFileHandle "<td align=\"center\">",ConvertPaymentTypeToString($am_payment_type),"</td>\n";
+					print   $htmlFileHandle "<td align=\"center\">",$am_payment_type,"</td>\n";
 					print   $htmlFileHandle "<td align=\"center\">","Weak Match","</td>\n";
 					print   $htmlFileHandle "</tr>\n";	
 					
 					print "\nWeak Match\n";
 					print "   --> Amount: [",$am_amount,"]\n";
 					print "   --> Quickbooks Memo: [",$qb_memo,"]\n";
-					print "   --> Quickbooks Entry:  [",$qb_date," ",$qb_name," ", ConvertPaymentTypeToString($qb_payment_type),"]\n";
-					print "   --> AutoManager Entry: [",$am_date," ",$am_name," ", ConvertPaymentTypeToString($am_payment_type),"]\n";
+					print "   --> Quickbooks Entry:  [",$qb_date," ",$qb_name," ", $qb_payment_type,"]\n";
+					print "   --> AutoManager Entry: [",$am_date," ",$am_name," ", $am_payment_type,"]\n";
 				}
 			}
 		}
@@ -538,7 +543,7 @@ for my $m (0 .. ($#QBA))
 				my $am_date         = $AMA[$index][AM_DATE_INDEX];
 				my $am_name         = $AMA[$index][AM_NAME_INDEX];
 				my $am_notes        = $AMA[$index][AM_NOTES_INDEX];
-				my $am_payment_type = $AMA[$index][AM_PAYMENT_TYPE_INDEX];
+				my $am_payment_type = ConvertPaymentTypeToString($AMA[$index][AM_PAYMENT_TYPE_INDEX]);
 				my $am_amount       = $AMA[$index][AM_PAYMENT_AMOUNT_INDEX];
 				
 				if ( $AMA[$m][AM_QB_EXACT_MATCH_INDEX] < 0 )
@@ -546,19 +551,19 @@ for my $m (0 .. ($#QBA))
 					#print "------> [",$k+1,"] AMIndex:",$index," Name: ",$am_name," Amt: ",$am_amount," Notes: ",$am_notes," Type: ",$am_payment_type,"\n";
 
 					print   $htmlFileHandle "<tr>\n";
-					print   $htmlFileHandle "<td align=\"left\">",uc($am_notes),"</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">",$am_notes,"</td>\n";
 					print   $htmlFileHandle "<td align=\"center\">",$am_date,"</td>\n";
-					print   $htmlFileHandle "<td align=\"left\">",uc($am_name),"</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">",$am_name,"</td>\n";
 					print   $htmlFileHandle "<td align=\"center\">",$am_amount,"</td>\n";
-					print   $htmlFileHandle "<td align=\"center\">",ConvertPaymentTypeToString($am_payment_type),"</td>\n";
+					print   $htmlFileHandle "<td align=\"center\">",$am_payment_type,"</td>\n";
 					print   $htmlFileHandle "<td align=\"center\">","Name Payment Type Match","</td>\n";
 					print   $htmlFileHandle "</tr>\n";			
 					
 					print "\n  Name Match\n";
 					print "   --> Amount: [",$am_amount,"]\n";
 					print "   --> Quickbooks Memo: [",$qb_memo,"]\n";
-					print "   --> Quickbooks Entry:  [",$qb_date," ",$qb_name," ", ConvertPaymentTypeToString($qb_payment_type),"]\n";
-					print "   --> AutoManager Entry: [",$am_date," ",$am_name," ", ConvertPaymentTypeToString($am_payment_type),"]\n";
+					print "   --> Quickbooks Entry:  [",$qb_date," ",$qb_name," ", $qb_payment_type,"]\n";
+					print "   --> AutoManager Entry: [",$am_date," ",$am_name," ", $am_payment_type,"]\n";
 				}
 			}
 			
@@ -573,8 +578,8 @@ for my $m (0 .. ($#QBA))
 		my $qb_name   = $QBA[$m][QB_NAME_INDEX];
 		my $qb_amount = $QBA[$m][QB_AMOUNT_INDEX];
 		my $qb_memo   = $QBA[$m][QB_MEMO_INDEX];
-		my $qb_payment_type = $QBA[$m][QB_PAYMENT_TYPE_INDEX];
-		#print "EXACT MATCH: QBIndex:",$i,":",$qb_name,":",$qb_amount,":",$qb_memo,":",ConvertPaymentTypeToString($qb_payment_type),"\n";		
+		my $qb_payment_type = ConvertPaymentTypeToString($QBA[$m][QB_PAYMENT_TYPE_INDEX]);
+		#print "EXACT MATCH: QBIndex:",$i,":",$qb_name,":",$qb_amount,":",$qb_memo,":",$qb_payment_type,"\n";		
 	}
 }
 
@@ -583,10 +588,9 @@ for my $m (0 .. ($#QBA))
 print  PR_HTML_OUTPUT_FILE "</body>\n";
 print  PR_HTML_OUTPUT_FILE "</html>\n";
  
- 
 
 {
-	##print(@unknown_missing_log); 
+	print $htmlFileHandle "<br><br>\n"
 	
 	HtmlTableTopSection($htmlFileHandle,$GREEN);
 	print $htmlFileHandle "<tr><th colspan=5>The following Quickbook entries are MISSING from AutoManager</th>\n";	
@@ -606,6 +610,7 @@ print  PR_HTML_OUTPUT_FILE "</html>\n";
 	HtmlTableTailSection($htmlFileHandle);
 	
 	
+	print $htmlFileHandle "<br><br>\n"
 	
 	
 	HtmlTableTopSection($htmlFileHandle,$GREEN);	
