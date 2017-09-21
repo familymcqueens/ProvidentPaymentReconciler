@@ -497,8 +497,6 @@ for my $m (1 .. ($#QBA))
 				my $am_payment_type = ConvertPaymentTypeToString($AMA[$index][AM_PAYMENT_TYPE_INDEX]);
 				my $am_amount       = $AMA[$index][AM_PAYMENT_AMOUNT_INDEX];
 				
-				print "--> PAYMENT WEAKNAME MATCH COUNT: m= ",$m,"\n",$AMA[$m][AM_DATE_INDEX],"\n",$AMA[$m][AM_NAME_INDEX],"\n",$AMA[$m][AM_PAYMENT_AMOUNT_INDEX],"\n";
-			
 				if ( $AMA[$m][AM_QB_EXACT_MATCH_INDEX] < 0 )
 				{
 					print   $htmlFileHandle "<tr>\n";
