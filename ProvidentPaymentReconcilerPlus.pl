@@ -84,6 +84,12 @@ while (<AM_INPUT_FILE>) {
 		$AMA[$amIndex][AM_PAYMENT_AMOUNT_INDEX] = sprintf('%.2f',abs($total));
 		$AMA[$amIndex][AM_QB_EXACT_MATCH_INDEX] = -1;
 	}
+	else 
+	{
+		# Make sure to set down payments, warranties, etc.. to index -1.
+		#print "Payment Type: ", $payment_type, " Index: ",$amIndex," Name: ",$name, " Amt:",$total,"\n";
+		$AMA[$amIndex][AM_QB_EXACT_MATCH_INDEX] = -1;
+	}
 	
 	$amIndex++;		
  }
@@ -314,9 +320,10 @@ for my $i (0 .. ($#QBA))
 			$num_exact_matches++;			
 			$QBA[$i][QB_AM_EXACT_MATCH_INDEX] = $j;	
 			$ABA[$i][QB_AM_EXACT_MATCH_INDEX] = $j;
-			#print "EXACT MATCH: AmIndex: ",$j," QBIndex:",$i,":",$qb_name,":",$qb_amount,":",$qb_memo,":",$qb_payment_type,"\n";
 			
-			$exact_match_log = sprintf("%s:%s:%s:%s:%s",$qb_name, $qb_payment_type, $qb_amount, $qb_date, $am_date);
+			##print "EXACT MATCH: AmIndex: ",$j," QBIndex:",$i,":",$qb_name,":",$qb_amount,":",$qb_memo,":",$qb_payment_type,"\n";
+			
+			$exact_match_log = sprintf("%s:%s:%s:%s:%s:%s",$j,$qb_name, $qb_payment_type, $qb_amount, $qb_date, $am_date);
 			push (@exact_match_log, $exact_match_log);
 			
 			$found_exact_match = 1;
@@ -336,6 +343,11 @@ for my $i (0 .. ($#QBA))
 		{
 			$QBA[$i][QB_AM_NAME_AMOUNT_MATCH_INDEX][$nameAmountMatchIndex++] = $j;
 		}
+		## Look for match with only LAST NAME and AMOUNT
+		elsif (($am_last_name eq $qb_last_name) && ($am_amount eq $qb_amount))
+		{
+			$QBA[$i][QB_AM_WEAKNAME_MATCH_INDEX][$weakNameAmountMatchIndex++] = $j;
+		} 
 		
 		## Look for match with "short" last name and amount only
 		elsif (($am_last_shortname eq $qb_last_shortname) && ($am_amount eq $qb_amount))
@@ -391,7 +403,7 @@ for my $m (1 .. ($#QBA))
 		
 		HtmlTableTopSection($htmlFileHandle,$RED);
 		print   $htmlFileHandle "<br><br><tr>\n";
-		print   $htmlFileHandle "<tr><th>Quickbooks Description</th><th>Date</th><th>Name</th><th>Payment</th><th>Payment Type</th>\n";
+		print   $htmlFileHandle "<tr><th>Quickbooks Description</th><th>Date</th><th>Name</th><th>Payment</th><th colspan=2>Payment Type</th>\n";
 		print   $htmlFileHandle "<tr>\n";
 		print   $htmlFileHandle "<td align=\"left\">",$qb_memo,"</td>\n";
 		print   $htmlFileHandle "<td align=\"center\">",$qb_date,"</td>\n";
@@ -485,6 +497,8 @@ for my $m (1 .. ($#QBA))
 				my $am_payment_type = ConvertPaymentTypeToString($AMA[$index][AM_PAYMENT_TYPE_INDEX]);
 				my $am_amount       = $AMA[$index][AM_PAYMENT_AMOUNT_INDEX];
 				
+				print "--> PAYMENT WEAKNAME MATCH COUNT: m= ",$m,"\n",$AMA[$m][AM_DATE_INDEX],"\n",$AMA[$m][AM_NAME_INDEX],"\n",$AMA[$m][AM_PAYMENT_AMOUNT_INDEX],"\n";
+			
 				if ( $AMA[$m][AM_QB_EXACT_MATCH_INDEX] < 0 )
 				{
 					print   $htmlFileHandle "<tr>\n";
@@ -559,7 +573,7 @@ print  PR_HTML_OUTPUT_FILE "</body>\n";
 print  PR_HTML_OUTPUT_FILE "</html>\n";
 
 {
-	print $htmlFileHandle "<br><br>\n"
+	print $htmlFileHandle "<br><br>\n";
 	
 	HtmlTableTopSection($htmlFileHandle,$GREEN);
 	print $htmlFileHandle "<tr><th colspan=5>The following Quickbook entries are MISSING from AutoManager</th>\n";	
@@ -578,11 +592,11 @@ print  PR_HTML_OUTPUT_FILE "</html>\n";
 	}	
 	HtmlTableTailSection($htmlFileHandle);
 	
-	print $htmlFileHandle "<br><br>\n"
+	print $htmlFileHandle "<br><br>\n";
 	
 	HtmlTableTopSection($htmlFileHandle,$GREEN);	
-	print $htmlFileHandle "<tr><th colspan=5>The following entries are EXACT matches in QuickBooks and AutoManager</th>\n";
-	print $htmlFileHandle "<tr><th>Name</th><th>Payment Type</th><th>Amount</th><th>Date (Quickbooks)</th><th>Date (AutoManager)</th>\n";
+	print $htmlFileHandle "<tr><th colspan=6>The following entries are EXACT matches in QuickBooks and AutoManager</th>\n";
+	print $htmlFileHandle "<tr><th>Index</th><th>Name</th><th>Payment Type</th><th>Amount</th><th>Date (Quickbooks)</th><th>Date (AutoManager)</th>\n";
 	
 	for my $entry (@exact_match_log) 
 	{
@@ -597,7 +611,16 @@ print  PR_HTML_OUTPUT_FILE "</html>\n";
 	}
 	
 	HtmlTableTailSection($htmlFileHandle);
-
+	
+	##TBD - print out AMA table
+	##for my $j (0 .. ($#AMA - 1))
+	##$AMA[$j][AM_DATE_INDEX] = $date;
+	##$AMA[$j][AM_NAME_INDEX] = uc($name);
+	##$AMA[$j][AM_NOTES_INDEX] = uc($notes);
+	##$AMA[$j][AM_PAYMENT_TYPE_INDEX] = LATE_FEE_INCOME_TYPE;	
+	##$AMA[$j][AM_PAYMENT_AMOUNT_INDEX] = sprintf('%.2f',abs($total));
+	##$AMA[$j][AM_QB_EXACT_MATCH_INDEX] = -1;
+		
 }
 
 close(PR_HTML_OUTPUT_FILE);
