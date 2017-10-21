@@ -338,6 +338,7 @@ for my $i (0 .. ($#QBA))
 			last;
 		}
 		
+		
 		## Look for match with only NAME and AMOUNT
 	    elsif (($am_name eq $qb_name) && ($am_amount eq $qb_amount))
 		{
@@ -345,6 +346,11 @@ for my $i (0 .. ($#QBA))
 		}
 		## Look for match with only LAST NAME and AMOUNT
 		elsif (($am_last_name eq $qb_last_name) && ($am_amount eq $qb_amount))
+		{
+			$QBA[$i][QB_AM_WEAKNAME_MATCH_INDEX][$weakNameAmountMatchIndex++] = $j;
+		} 
+		## Look for match with only LAST NAME and AMOUNT
+		elsif (($am_first_name eq $qb_first_name) && ($am_amount eq $qb_amount))
 		{
 			$QBA[$i][QB_AM_WEAKNAME_MATCH_INDEX][$weakNameAmountMatchIndex++] = $j;
 		} 
@@ -497,6 +503,8 @@ for my $m (1 .. ($#QBA))
 				my $am_payment_type = ConvertPaymentTypeToString($AMA[$index][AM_PAYMENT_TYPE_INDEX]);
 				my $am_amount       = $AMA[$index][AM_PAYMENT_AMOUNT_INDEX];
 				
+				print "--> PAYMENT WEAKNAME MATCH COUNT: m= ",$m,"\n",$AMA[$m][AM_DATE_INDEX],"\n",$AMA[$m][AM_NAME_INDEX],"\n",$AMA[$m][AM_PAYMENT_AMOUNT_INDEX],"\n";
+			
 				if ( $AMA[$m][AM_QB_EXACT_MATCH_INDEX] < 0 )
 				{
 					print   $htmlFileHandle "<tr>\n";
