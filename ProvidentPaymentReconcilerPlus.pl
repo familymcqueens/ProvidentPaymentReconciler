@@ -338,6 +338,7 @@ for my $i (0 .. ($#QBA))
 			last;
 		}
 		
+		
 		## Look for match with only NAME and AMOUNT
 	    elsif (($am_name eq $qb_name) && ($am_amount eq $qb_amount))
 		{
@@ -345,6 +346,11 @@ for my $i (0 .. ($#QBA))
 		}
 		## Look for match with only LAST NAME and AMOUNT
 		elsif (($am_last_name eq $qb_last_name) && ($am_amount eq $qb_amount))
+		{
+			$QBA[$i][QB_AM_WEAKNAME_MATCH_INDEX][$weakNameAmountMatchIndex++] = $j;
+		} 
+		## Look for match with only LAST NAME and AMOUNT
+		elsif (($am_first_name eq $qb_first_name) && ($am_amount eq $qb_amount))
 		{
 			$QBA[$i][QB_AM_WEAKNAME_MATCH_INDEX][$weakNameAmountMatchIndex++] = $j;
 		} 
