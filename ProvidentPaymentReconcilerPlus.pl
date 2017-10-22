@@ -2,19 +2,12 @@
 ## Script to read AutoManager and QuickBooks Bank Register Files
 ##
 
-my $YELLOW = "yellow";
-my $BLUE   = "blue";
-my $GREEN  = "green";
-my $RED = "red";
-
-my $TableIterator = 1;
-my $numArgs = $#ARGV + 1;
-
 my @AMA;  # Auto Manager Array
 my @QBA;  # QuickBooks Array
 
 my $amIndex = 0;
 my $qbIndex = 0;
+my $numArgs = $#ARGV + 1;
 
 ## Make sure we have the right command line arguments
 if ( $numArgs != 2 )
@@ -57,7 +50,7 @@ while (<AM_INPUT_FILE>) {
  chomp;
  my ($date,$total,$expense,$name,$payment_type,$notes,$invoice,$check,$part,$balance,$interest,$principal,$lot,$vehicle,$status,$receipt) = split(",");
  
- 	if ($payment_type eq "PAYMENT")
+	if ($payment_type eq "PAYMENT")
 	{
 		$AMA[$amIndex][AM_DATE_INDEX] = $date;
 		$AMA[$amIndex][AM_NAME_INDEX] = uc($name);
@@ -123,6 +116,10 @@ my $deposit_date;
  chomp;
  ($type, $num, $date,$name,$memo,$payment_type,$amount) = split(",");
 
+    # Remove quotes from date
+	$date =~ s/"/ /i;
+	$date =~ s/"/ /i;
+	
 	## Since the date is listed ONCE per deposit, check to see if the date value 
 	## is of non-zero length and store off in $deposit_date variable
     if (length($date) && ($date ne "TOTAL"))
@@ -226,7 +223,8 @@ my $htmlFileHandle = \*PR_HTML_OUTPUT_FILE;
 print $htmlFileHandle "<html>\n";
 print $htmlFileHandle "<head><title>Provident Financial Payment Reconciler Utility </title></head>\n";
 print $htmlFileHandle "<body>\n";
-print $htmlFileHandle "<h1>Provident Financial Payment Reconciler Utility</h1>\n";
+print $htmlFileHandle "<h1><i>Provident Financial Payment Reconciler Utility</i></h1>\n";
+PrintCssStyle($htmlFileHandle);
 
 my $num_exact_matches = 0;
 my $num_weak_matches = 0;
@@ -407,19 +405,32 @@ for my $m (1 .. ($#QBA))
 		print " Memo:",$qb_memo,"\n";
 		print " Payment Type: ",$qb_payment_type,"\n\n";
 		
-		HtmlTableTopSection($htmlFileHandle,$RED);
-		print   $htmlFileHandle "<br><br><tr>\n";
-		print   $htmlFileHandle "<tr><th>Quickbooks Description</th><th>Date</th><th>Name</th><th>Payment</th><th colspan=2>Payment Type</th>\n";
+		print   $htmlFileHandle "<br><br>\n";
+		print   $htmlFileHandle "<div class=\"datagrid\"><table class=\"table1\">\n";
+        print   $htmlFileHandle "<thead><tr><th>Quickbooks Description</th><th>Date</th><th>Name</th><th>Payment</th><th colspan=2>Payment Type</th></tr></thead>\n";
+		print   $htmlFileHandle "<tbody>\n";
 		print   $htmlFileHandle "<tr>\n";
 		print   $htmlFileHandle "<td align=\"left\">",$qb_memo,"</td>\n";
-		print   $htmlFileHandle "<td align=\"center\">",$qb_date,"</td>\n";
+		print   $htmlFileHandle "<td align=\"left\">",$qb_date,"</td>\n";
 		print   $htmlFileHandle "<td align=\"left\">",$qb_name,"</td>\n";
-		print   $htmlFileHandle "<td align=\"center\">",$qb_amount,"</td>\n";
-		print   $htmlFileHandle "<td align=\"center\">",$qb_payment_type,"</td>\n";
+		print   $htmlFileHandle "<td align=\"left\">",$qb_amount,"</td>\n";
+		print   $htmlFileHandle "<td align=\"left\">",$qb_payment_type,"</td>\n";
 		print   $htmlFileHandle "</tr>\n";
-		print   $htmlFileHandle "<tr><th>AutoManager Description</th><th>Date</th><th>Name</th><th>Payment</th><th>Payment Type</th><th>Match Type</th>\n";			
+		print   $htmlFileHandle "</tbody>\n";
+        print   $htmlFileHandle "</table></div>\n";
 		
-		my $numPaymentTypeMatches = scalar @{ $QBA[$m][QB_AM_NAME_AMOUNT_MATCH_INDEX] };
+		my $numPaymentTypeMatches     = scalar @{ $QBA[$m][QB_AM_NAME_AMOUNT_MATCH_INDEX] };
+		my $numShortNameAmountMatches = scalar @{ $QBA[$m][QB_AM_SHORTNAME_AMOUNT_MATCH_INDEX] };
+		my $numWeakMatches            = scalar @{ $QBA[$m][QB_AM_WEAKNAME_MATCH_INDEX] };
+		my $numNameTypeMatches        = scalar @{ $QBA[$m][QB_AM_NAME_TYPE_MATCH_INDEX] };
+		
+		if (($numPaymentTypeMatches > 0) || ($numShortNameAmountMatches > 0) || ($numWeakMatches > 0) || ($numNameTypeMatches > 0) )
+		{
+			print   $htmlFileHandle "<div class=\"datagrid\"><table class=\"table2\">\n";
+			print   $htmlFileHandle "<thead><tr><th>AutoManager Matches</th><th>Date</th><th>Name</th><th>Payment</th><th>Payment Type</th><th>Match Type</th></tr></thead>\n";
+			print   $htmlFileHandle "<tbody>\n";
+		}
+				
 		
 		if ( $numPaymentTypeMatches > 0 )
 		{
@@ -443,18 +454,15 @@ for my $m (1 .. ($#QBA))
 									
 					print   $htmlFileHandle "<tr>\n";
 					print   $htmlFileHandle "<td align=\"left\">",$am_notes,"</td>\n";
-					print   $htmlFileHandle "<td align=\"center\">",$am_date,"</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">",$am_date,"</td>\n";
 					print   $htmlFileHandle "<td align=\"left\">",$am_name,"</td>\n";
-					print   $htmlFileHandle "<td align=\"center\">",$am_amount,"</td>\n";
-					print   $htmlFileHandle "<td align=\"center\">",$am_payment_type,"</td>\n";
-					print   $htmlFileHandle "<td align=\"center\">","Payment Type Mismatch","</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">",$am_amount,"</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">",$am_payment_type,"</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">","Payment Type Mismatch","</td>\n";
 					print   $htmlFileHandle "</tr>\n";	
 				}
-			}
-			
+			}			
 		}
-		
-		my $numShortNameAmountMatches = scalar @{ $QBA[$m][QB_AM_SHORTNAME_AMOUNT_MATCH_INDEX] };
 		
 		if ( $numShortNameAmountMatches > 0 )
 		{
@@ -473,11 +481,11 @@ for my $m (1 .. ($#QBA))
 				{
 					print   $htmlFileHandle "<tr>\n";
 					print   $htmlFileHandle "<td align=\"left\">",$am_notes,"</td>\n";
-					print   $htmlFileHandle "<td align=\"center\">",$am_date,"</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">",$am_date,"</td>\n";
 					print   $htmlFileHandle "<td align=\"left\">",$am_name,"</td>\n";
-					print   $htmlFileHandle "<td align=\"center\">",$am_amount,"</td>\n";
-					print   $htmlFileHandle "<td align=\"center\">",$am_payment_type,"</td>\n";
-					print   $htmlFileHandle "<td align=\"center\">","Shortname Amount Type Match","</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">",$am_amount,"</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">",$am_payment_type,"</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">","Shortname Amount Type Match","</td>\n";
 					print   $htmlFileHandle "</tr>\n";	
 			
 					print "\nShortname Amount Type Match\n";
@@ -487,8 +495,6 @@ for my $m (1 .. ($#QBA))
 				}
 			}
 		}
-		
-		my $numWeakMatches = scalar @{ $QBA[$m][QB_AM_WEAKNAME_MATCH_INDEX] };
 		
 		if ( $numWeakMatches > 0 )
 		{
@@ -507,11 +513,11 @@ for my $m (1 .. ($#QBA))
 				{
 					print   $htmlFileHandle "<tr>\n";
 					print   $htmlFileHandle "<td align=\"left\">",$am_notes,"</td>\n";
-					print   $htmlFileHandle "<td align=\"center\">",$am_date,"</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">",$am_date,"</td>\n";
 					print   $htmlFileHandle "<td align=\"left\">",$am_name,"</td>\n";
-					print   $htmlFileHandle "<td align=\"center\">",$am_amount,"</td>\n";
-					print   $htmlFileHandle "<td align=\"center\">",$am_payment_type,"</td>\n";
-					print   $htmlFileHandle "<td align=\"center\">","Weak Match","</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">",$am_amount,"</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">",$am_payment_type,"</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">","Weak Match","</td>\n";
 					print   $htmlFileHandle "</tr>\n";	
 					
 					print "\nWeak Match\n";
@@ -522,9 +528,6 @@ for my $m (1 .. ($#QBA))
 				}
 			}
 		}
-		
-				
-		my $numNameTypeMatches = scalar @{ $QBA[$m][QB_AM_NAME_TYPE_MATCH_INDEX] };
 		
 		if ( $numNameTypeMatches > 0 )
 		{
@@ -543,11 +546,11 @@ for my $m (1 .. ($#QBA))
 				{
 					print   $htmlFileHandle "<tr>\n";
 					print   $htmlFileHandle "<td align=\"left\">",$am_notes,"</td>\n";
-					print   $htmlFileHandle "<td align=\"center\">",$am_date,"</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">",$am_date,"</td>\n";
 					print   $htmlFileHandle "<td align=\"left\">",$am_name,"</td>\n";
-					print   $htmlFileHandle "<td align=\"center\">",$am_amount,"</td>\n";
-					print   $htmlFileHandle "<td align=\"center\">",$am_payment_type,"</td>\n";
-					print   $htmlFileHandle "<td align=\"center\">","Name Payment Type Match","</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">",$am_amount,"</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">",$am_payment_type,"</td>\n";
+					print   $htmlFileHandle "<td align=\"left\">","Name Payment Type Match","</td>\n";
 					print   $htmlFileHandle "</tr>\n";			
 					
 					print "\n  Name Match\n";
@@ -558,7 +561,8 @@ for my $m (1 .. ($#QBA))
 				}
 			}
 			
-			HtmlTableTailSection($htmlFileHandle);
+			print   $htmlFileHandle "</tbody>\n";
+			print   $htmlFileHandle "</table></div>\n";			
 			print "\n-------------------------------------------------------\n";			
 		}		
 	}
@@ -571,22 +575,33 @@ for my $m (1 .. ($#QBA))
 		my $qb_memo   = $QBA[$m][QB_MEMO_INDEX];
 		my $qb_payment_type = ConvertPaymentTypeToString($QBA[$m][QB_PAYMENT_TYPE_INDEX]);
 	}
+	
 }
 
 print  PR_HTML_OUTPUT_FILE "</body>\n";
 print  PR_HTML_OUTPUT_FILE "</html>\n";
 
 {
-	print $htmlFileHandle "<br><br>\n";
-	
-	HtmlTableTopSection($htmlFileHandle,$GREEN);
-	print $htmlFileHandle "<tr><th colspan=5>The following Quickbook entries are MISSING from AutoManager</th>\n";	
+	print $htmlFileHandle "<br><br><br>\n";
+	print $htmlFileHandle "<div class=\"datagrid\"><table class=\"table3\">\n";
+	print $htmlFileHandle "<thead><tr><th colspan=5>The following Quickbook entries are MISSING from AutoManager</th>\n";
 	print $htmlFileHandle "<tr><th>Memo</th><th>Date</th><th>Name</th><th>Payment Type</th><th>Amount</th>\n";
+	print $htmlFileHandle "<tbody>\n";
+	
+	my $iteration = 0;
 	
 	for my $entry (@unknown_missing_log) 
 	{
 		my @values = split(':', $entry);
-		print   $htmlFileHandle "<tr>\n";
+		
+		if ($iteration++ % 2)
+		{
+			print   $htmlFileHandle "<tr class=\"alt\">\n";
+		}
+		else
+		{
+			print   $htmlFileHandle "<tr>\n";
+		}
 		
 		foreach my $val (@values) 
 		{
@@ -594,18 +609,28 @@ print  PR_HTML_OUTPUT_FILE "</html>\n";
 		}		
 		print $htmlFileHandle "</tr>\n";		
 	}	
-	HtmlTableTailSection($htmlFileHandle);
 	
-	print $htmlFileHandle "<br><br>\n";
+	print $htmlFileHandle "</tbody>\n";
+	print $htmlFileHandle "</table></div>\n";
+	print $htmlFileHandle "<br><br><br>\n";
 	
-	HtmlTableTopSection($htmlFileHandle,$GREEN);	
-	print $htmlFileHandle "<tr><th colspan=6>The following entries are EXACT matches in QuickBooks and AutoManager</th>\n";
+	print $htmlFileHandle "<div class=\"datagrid\"><table class=\"table3\">\n";
+	print $htmlFileHandle "<thead><tr><th colspan=6>The following entries are EXACT matches in QuickBooks and AutoManager</th>\n";
 	print $htmlFileHandle "<tr><th>Index</th><th>Name</th><th>Payment Type</th><th>Amount</th><th>Date (Quickbooks)</th><th>Date (AutoManager)</th>\n";
+	print $htmlFileHandle "<tbody>\n";
 	
 	for my $entry (@exact_match_log) 
 	{
 		my @values = split(':', $entry);
-		print   $htmlFileHandle "<tr>\n";
+		
+		if ($iteration++ % 2)
+		{
+			print   $htmlFileHandle "<tr class=\"alt\">\n";
+		}
+		else
+		{
+			print   $htmlFileHandle "<tr>\n";
+		}
 		
 		foreach my $val (@values) 
 		{
@@ -614,7 +639,9 @@ print  PR_HTML_OUTPUT_FILE "</html>\n";
 		print $htmlFileHandle "</tr>\n";		
 	}
 	
-	HtmlTableTailSection($htmlFileHandle);
+	print   $htmlFileHandle "</tbody>\n";
+	print   $htmlFileHandle "</table></div>\n";
+	print   $htmlFileHandle "<br><br><br>\n";
 	
 	##TBD - print out AMA table
 	##for my $j (0 .. ($#AMA - 1))
@@ -629,6 +656,13 @@ print  PR_HTML_OUTPUT_FILE "</html>\n";
 
 close(PR_HTML_OUTPUT_FILE);
 ## end of main script logic
+
+
+
+
+
+
+
 
 
 
@@ -655,26 +689,49 @@ sub ConvertPaymentTypeToString
 	}	
 }
 
-sub HtmlTableTopSection 
-{
-    my $fileHandle = $_[0];
-	my $headerColor = $_[1];	
-	
-	print $fileHandle "<head><style>\n";
-	print $fileHandle "table  { width:80%;}\n";
-	print $fileHandle "th, td { padding:10px;}\n";
-	print $fileHandle "table#table",$TableIterator," tr:nth-child(even) { background-color: #eee; }\n";
-	print $fileHandle "table#table",$TableIterator," tr:nth-child(odd)  { background-color: #fff; }\n";
-	print $fileHandle "table#table",$TableIterator," th { background-color: ",$headerColor,"; color: white; }\n";
-	print $fileHandle "</style></head>\n";
-	print $fileHandle "<table border=5 id=\"table",$TableIterator,"\" >\n";
-	$TableIterator++;
-}
 
-sub HtmlTableTailSection
+
+sub PrintCssStyle
 {
-    my $fileHandle = $_[0];		
-	print  $fileHandle "</table>\n";
+	my $fileHandle = $_[0];		
+	print  $fileHandle "<style>\n";
+	print  $fileHandle "body {background-color: lightblue;}\n";
+	print  $fileHandle "h1 {color: navy;margin-left: 20px;}\n";
+		
+	print  $fileHandle ".datagrid table.table1 { border-collapse: collapse; text-align: left; width: 100%; }\n"; 
+	print  $fileHandle ".datagrid table.table1 {font: normal 12px/150% Arial, Helvetica, sans-serif; background: #fff; overflow: hidden; border: 4px solid #991821; -webkit-border-radius: 3px; -moz-border-radius: 3px; border-radius: 5px; }\n";
+	print  $fileHandle ".datagrid table.table1 td,\n"; 
+	print  $fileHandle ".datagrid table.table1 th { padding: 3px 10px; }\n";
+	print  $fileHandle ".datagrid table.table1 thead th {background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #991821), color-stop(1, #80141C) );background:-moz-linear-gradient( center top, #991821 5%, #80141C 100% );filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#991821', endColorstr='#80141C');background-color:#991821; color:#FFFFFF; font-size: 15px; font-weight: bold; border-left: 1px solid #B01C26; }\n"; 
+	print  $fileHandle ".datagrid table.table1 thead th:first-child { border: none; }\n";
+	print  $fileHandle ".datagrid table.table1 tbody td { color: #80141C; border-left: 1px solid #F7CDCD;font-size: 12px;font-weight: normal; }\n";
+	print  $fileHandle ".datagrid table.table1 tbody .alt td { background: #F7CDCD; color: #80141C; }\n";
+	print  $fileHandle ".datagrid table.table1 tbody td:first-child { border-left: none; }\n";
+	print  $fileHandle ".datagrid table.table1 tbody tr:last-child td { border-bottom: none; }\n";
+
+	print  $fileHandle ".datagrid table.table2 { border-collapse: collapse; text-align: left; width: 100%; }\n"; 
+	print  $fileHandle ".datagrid table.table2 {font: normal 12px/150% Arial, Helvetica, sans-serif; background: #fff; overflow: hidden; border: 4px solid #006699; }\n";
+	print  $fileHandle ".datagrid table.table2 td,\n"; 
+	print  $fileHandle ".datagrid table.table2 th { padding: 0px 8px; }\n";
+	print  $fileHandle ".datagrid table.table2 thead th {background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #006699), color-stop(1, #00557F) );background:-moz-linear-gradient( center top, #006699 5%, #00557F 100% );filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#006699', endColorstr='#00557F');background-color:#006699; color:#FFFFFF; font-size: 12px; font-weight: bold; border-left: 1px solid #0070A8; }\n"; 
+	print  $fileHandle ".datagrid table.table2 thead th:first-child { border: none; }\n";
+	print  $fileHandle ".datagrid table.table2 tbody td { color: #00496B; border-left: 1px solid #E1EEF4;font-size: 12px;font-weight: normal; }\n";
+	print  $fileHandle ".datagrid table.table2 tbody .alt td { background: #E1EEF4; color: #00496B; }\n";
+	print  $fileHandle ".datagrid table.table2 tbody td:first-child { border-left: none; }\n";
+	print  $fileHandle ".datagrid table.table2 tbody tr:last-child td { border-bottom: none; }\n";
+
+	print  $fileHandle ".datagrid table.table3 { border-collapse: collapse; text-align: left; width: 100%; }\n"; 
+	print  $fileHandle ".datagrid table.table3 {font: normal 12px/150% Arial, Helvetica, sans-serif; background: #fff; overflow: hidden; border: 1px solid #36752D; -webkit-border-radius: 3px; -moz-border-radius: 3px; border-radius: 3px; }\n";
+	print  $fileHandle ".datagrid table.table3 td,\n"; 
+	print  $fileHandle ".datagrid table.table3 th { padding: 3px 10px; }\n";
+	print  $fileHandle ".datagrid table.table3 thead th {background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #36752D), color-stop(1, #275420) );background:-moz-linear-gradient( center top, #36752D 5%, #275420 100% );filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#36752D', endColorstr='#275420');background-color:#36752D; color:#FFFFFF; font-size: 15px; font-weight: bold; border-left: 1px solid #36752D; }\n"; 
+	print  $fileHandle ".datagrid table.table3 thead th:first-child { border: none; }\n";
+	print  $fileHandle ".datagrid table.table3 tbody td { color: #275420; border-left: 1px solid #C6FFC2;font-size: 12px;font-weight: normal; }\n";
+	print  $fileHandle ".datagrid table.table3 tbody .alt td { background: #DFFFDE; color: #275420; }\n";
+	print  $fileHandle ".datagrid table.table3 tbody td:first-child { border-left: none; }\n";
+	print  $fileHandle ".datagrid table.table3 tbody tr:last-child td { border-bottom: none; }\n";
+		
+	print  $fileHandle "</style>\n";
 }
 
 
