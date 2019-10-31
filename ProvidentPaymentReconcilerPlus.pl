@@ -139,7 +139,8 @@ my $deposit_date;
 	$payment_type=~ s/"//;	
 	$payment_type=~ s/"//;
 	
-	($type,$num,$date,$lastname, $firstname,$memo,$payment_type,$amount) = split(",");
+	($type,$num,$date,$lastname, $firstname,$memo,$payment_type,$amount) = split(",");	
+	
 	$ucfirstname = uc($firstname);
 	$uclastname = uc($lastname);
 	$ucfirstname =~ s/"//;	
