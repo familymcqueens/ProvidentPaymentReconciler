@@ -377,15 +377,6 @@ for my $i (0 .. scalar(@QBA)-1)
 			$found_exact_match = 0;
 		}
 		
-		## Look for memo description errors
-		#elsif (length($qb_memo) < 0)
-		#{
-		#	if ($debug)
-		#	{	
-		#		print "QBIndex:",$i," QB_MEMO_ERROR: QB_NAME:",$qb_name, "QB_TYPE:",$qb_payment_type," QB_AMOUNT:",$qb_amount,"\n";
-		#	}
-		#}
-
 		if (($am_name eq $qb_name) && ($am_payment_type ne $qb_payment_type) && ($am_amount eq $qb_amount))
 		{
 			if ($debug)
@@ -504,11 +495,23 @@ for my $i (0 .. scalar(@QBA)-1)
 	{
 		if ($debug)
 		{	
-			print "QBIndex:",$i," NO AM MATCH: QB_NAME:",$qb_name," QB_TYPE:",$qb_payment_type," QB_AMOUNT:",$qb_amount,"\n";			
-			$qb_no_match_log = sprintf("%s:%s:%s:%s:%s:%s",
-				$qb_memo,$qb_date,$qb_name,$qb_payment_type,$qb_amount);
-				push (@qb_no_match_log, $qb_no_match_log);
-		}
+			print "QBIndex:",$i," NO AM MATCH: QB_NAME:",$qb_name," QB_TYPE:",$qb_payment_type," QB_AMOUNT:",$qb_amount,"\n";
+		}	
+		
+		$qb_no_match_log = sprintf("%s:%s:%s:%s:%s:%s",$qb_memo,$qb_date,$qb_name,$qb_payment_type,$qb_amount);
+		push (@qb_no_match_log, $qb_no_match_log);
+		
+	}
+	
+	if (($qb_memo ne "DEPOSIT") || ($qb_memo eq ""))
+	{
+		if ($debug)
+		{	
+			print "QBIndex:",$i," QB MEMO UNKNOWN: QB_NAME:",$qb_name," QB_TYPE:",$qb_payment_type," QB_AMOUNT:",$qb_amount,"\n";
+		}		
+		
+		$qb_no_match_log = sprintf("%s:%s:%s:%s:%s:%s",$qb_memo,$qb_date,$qb_name,$qb_payment_type,$qb_amount);
+		push (@qb_no_match_log, $qb_no_match_log);
 	}
 } 
 
@@ -540,11 +543,9 @@ for my $m (0 .. scalar(@QBA)-1)
 	my $qb_memo   = $QBA[$m][QB_MEMO_INDEX];
 	my $qb_payment_type = ConvertPaymentTypeToString($QBA[$m][QB_PAYMENT_TYPE_INDEX]);	
 	
-	if (($QBA[$m][QB_MEMO_INDEX]) ne "DEPOSIT" || ($QBA[$m][QB_MEMO_INDEX] eq ""))
+	# Skip over non-deposit QB entries
+	if (($qb_memo ne "DEPOSIT") || ($qb_memo eq ""))
 	{
-	#	$unknown_missing_log = sprintf("%s:%s:%s:%s:%s",
-	#		$qb_memo,$qb_date,$qb_name,$qb_payment_type,$qb_amount);
-	#	push (@unknown_missing_log, $unknown_missing_log);
 		next;
 	}
 	
@@ -686,7 +687,7 @@ print $htmlFileHandle "</html>\n";
 
 
 # Print out the missing QB entries from AutoManager
-print $htmlFileHandle "<div class=\"datagrid\"><table class=\"table1\">\n";
+print $htmlFileHandle "<div class=\"datagrid\"><table class=\"table2\">\n";
 print $htmlFileHandle "<br><thead><tr><th colspan=5>Quickbook entries with no matches from AutoManager</th>\n";
 print $htmlFileHandle "<tr><th>Memo</th><th>Date</th><th>Name</th><th>Payment Type</th><th>Amount</th>\n";
 print $htmlFileHandle "<tbody>\n";
@@ -699,8 +700,7 @@ for my $entry (@qb_no_match_log)
 	
 	if ($iteration++ % 2)
 	{
-		#print $htmlFileHandle "<tr class=\"alt\">\n";
-		print $htmlFileHandle "<tr>\n";
+		print $htmlFileHandle "<tr class=\"alt\">\n";
 	}
 	else
 	{
@@ -716,7 +716,7 @@ for my $entry (@qb_no_match_log)
 
 print $htmlFileHandle "</tbody>\n";
 print $htmlFileHandle "</table></div>\n";
-print $htmlFileHandle "<br><br><br>\n";
+print $htmlFileHandle "<br>\n";
 
 
 
@@ -726,6 +726,8 @@ print $htmlFileHandle "<div class=\"datagrid\"><table class=\"table3\">\n";
 print $htmlFileHandle "<br><thead><tr><th colspan=8>The following entries are EXACT matches in QuickBooks and AutoManager</th>\n";
 print $htmlFileHandle "<tr><th>Index(QB)</th><th>Index(AM)</th><th>Date(QB)</th><th>Date(AM)</th><th>Name</th><th>Payment Type</th><th>Amount</th><th>Note(AM)</th>\n";
 print $htmlFileHandle "<tbody>\n";
+
+my $iteration = 0;
 
 for my $entry (@exact_match_log) 
 {
@@ -836,18 +838,18 @@ sub PrintCssStyle
 	print  $fileHandle ".datagrid table.table1 tbody tr:last-child td { border-bottom: none; }\n";
 
 	print  $fileHandle ".datagrid table.table2 { border-collapse: collapse; text-align: left; width: 100%; }\n"; 
-	print  $fileHandle ".datagrid table.table2 {font: normal 12px/150% Arial, Helvetica, sans-serif; background: #fff; overflow: hidden; border: 4px solid #006699; }\n";
+	print  $fileHandle ".datagrid table.table2 {font: normal 12px/150% Arial, Helvetica, sans-serif; background: #fff; overflow: hidden; border: 4px solid #006699; -webkit-border-radius: 3px; -moz-border-radius: 3px; border-radius: 5px;}\n";
 	print  $fileHandle ".datagrid table.table2 td,\n"; 
-	print  $fileHandle ".datagrid table.table2 th { padding: 0px 8px; }\n";
-	print  $fileHandle ".datagrid table.table2 thead th {background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #006699), color-stop(1, #00557F) );background:-moz-linear-gradient( center top, #006699 5%, #00557F 100% );filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#006699', endColorstr='#00557F');background-color:#006699; color:#FFFFFF; font-size: 12px; font-weight: bold; border-left: 1px solid #0070A8; }\n"; 
+	print  $fileHandle ".datagrid table.table2 th { padding: 3px 10px; }\n";
+	print  $fileHandle ".datagrid table.table2 thead th {background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #006699), color-stop(1, #00557F) );background:-moz-linear-gradient( center top, #006699 5%, #00557F 100% );filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#006699', endColorstr='#00557F');background-color:#006699; color:#FFFFFF; font-size: 15px; font-weight: bold; border-left: 1px solid #0070A8; }\n"; 
 	print  $fileHandle ".datagrid table.table2 thead th:first-child { border: none; }\n";
-	print  $fileHandle ".datagrid table.table2 tbody td { color: #00496B; border-left: 1px solid #E1EEF4;font-size: 12px;font-weight: normal; }\n";
-	print  $fileHandle ".datagrid table.table2 tbody .alt td { background: #E1EEF4; color: #00496B; }\n";
+	print  $fileHandle ".datagrid table.table2 tbody td { color: #80141C; border-left: 1px solid #CCE5FF;font-size: 12px;font-weight: normal; }\n";
+	print  $fileHandle ".datagrid table.table2 tbody .alt td { background: #CCE5FF; color: #80141C; }\n";
 	print  $fileHandle ".datagrid table.table2 tbody td:first-child { border-left: none; }\n";
 	print  $fileHandle ".datagrid table.table2 tbody tr:last-child td { border-bottom: none; }\n";
 
 	print  $fileHandle ".datagrid table.table3 { border-collapse: collapse; text-align: left; width: 100%; }\n"; 
-	print  $fileHandle ".datagrid table.table3 {font: normal 12px/150% Arial, Helvetica, sans-serif; background: #fff; overflow: hidden; border: 1px solid #36752D; -webkit-border-radius: 3px; -moz-border-radius: 3px; border-radius: 3px; }\n";
+	print  $fileHandle ".datagrid table.table3 {font: normal 12px/150% Arial, Helvetica, sans-serif; background: #fff; overflow: hidden; border: 4px solid #36752D; -webkit-border-radius: 3px; -moz-border-radius: 3px; border-radius: 5px; }\n";
 	print  $fileHandle ".datagrid table.table3 td,\n"; 
 	print  $fileHandle ".datagrid table.table3 th { padding: 3px 10px; }\n";
 	print  $fileHandle ".datagrid table.table3 thead th {background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #36752D), color-stop(1, #275420) );background:-moz-linear-gradient( center top, #36752D 5%, #275420 100% );filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#36752D', endColorstr='#275420');background-color:#36752D; color:#FFFFFF; font-size: 15px; font-weight: bold; border-left: 1px solid #36752D; }\n"; 
