@@ -503,7 +503,7 @@ for my $i (0 .. scalar(@QBA)-1)
 		
 	}
 	
-	if (($qb_memo ne "DEPOSIT") || ($qb_memo eq ""))
+	elsif (($qb_memo ne "DEPOSIT") || ($qb_memo eq ""))
 	{
 		if ($debug)
 		{	
