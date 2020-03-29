@@ -328,6 +328,12 @@ for my $i (0 .. scalar(@QBA)-1)
 	# Look for matching Auto Manager entries
 	for my $j (0 .. scalar(@AMA)-1) 
 	{
+		# Skip this AM entry if there is already a found match
+		if ( $AMA[$j][AM_EXACT_MATCH_INDEX] ne -1 )
+		{
+			next;
+		}
+		
 		my $am_date         = $AMA[$j][AM_DATE_INDEX];
 		my $am_name         = $AMA[$j][AM_NAME_INDEX];
 		my $am_notes        = $AMA[$j][AM_NOTES_INDEX];
